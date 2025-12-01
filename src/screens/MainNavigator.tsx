@@ -6,9 +6,10 @@ import BoardScreen from './BoardScreen';
 import PostDetailScreen from './PostDetailScreen';
 import ProfileScreen from './ProfileScreen';
 import CreatePostScreen from './CreatePostScreen';
+import VerificationScreen from './VerificationScreen';
 import { BoardType } from '../types';
 
-type Screen = 'home' | 'board' | 'post' | 'profile' | 'createPost';
+type Screen = 'home' | 'board' | 'post' | 'profile' | 'createPost' | 'verification';
 
 export default function MainNavigator() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('home');
@@ -41,7 +42,15 @@ export default function MainNavigator() {
     setCurrentScreen('createPost');
   };
 
+  const navigateToVerification = () => {
+    setCurrentScreen('verification');
+  };
+
   const handlePostCreated = () => {
+    setCurrentScreen('home');
+  };
+
+  const handleVerificationCompleted = () => {
     setCurrentScreen('home');
   };
 
@@ -81,6 +90,7 @@ export default function MainNavigator() {
               {currentScreen === 'post' && '게시글'}
               {currentScreen === 'profile' && '프로필'}
               {currentScreen === 'createPost' && '글쓰기'}
+              {currentScreen === 'verification' && '거주 인증'}
             </Text>
           </View>
         </View>
@@ -93,6 +103,7 @@ export default function MainNavigator() {
             onNavigateToBoard={navigateToBoard}
             onNavigateToProfile={() => setCurrentScreen('profile')}
             onNavigateToCreatePost={navigateToCreatePost}
+            onNavigateToVerification={navigateToVerification}
           />
         )}
         {currentScreen === 'board' && (
@@ -105,10 +116,13 @@ export default function MainNavigator() {
         {currentScreen === 'createPost' && (
           <CreatePostScreen onCancel={navigateBack} onSuccess={handlePostCreated} />
         )}
+        {currentScreen === 'verification' && (
+          <VerificationScreen onCancel={navigateBack} onSuccess={handleVerificationCompleted} />
+        )}
       </View>
 
       {/* Bottom Navigation */}
-      {currentScreen !== 'profile' && currentScreen !== 'post' && currentScreen !== 'createPost' && (
+      {currentScreen !== 'profile' && currentScreen !== 'post' && currentScreen !== 'createPost' && currentScreen !== 'verification' && (
         <View
           style={{
             backgroundColor: '#fff',

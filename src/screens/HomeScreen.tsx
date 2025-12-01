@@ -7,9 +7,10 @@ interface HomeScreenProps {
   onNavigateToBoard: (boardType: BoardType) => void;
   onNavigateToProfile: () => void;
   onNavigateToCreatePost: () => void;
+  onNavigateToVerification: () => void;
 }
 
-export default function HomeScreen({ onNavigateToBoard, onNavigateToProfile, onNavigateToCreatePost }: HomeScreenProps) {
+export default function HomeScreen({ onNavigateToBoard, onNavigateToProfile, onNavigateToCreatePost, onNavigateToVerification }: HomeScreenProps) {
   const [userEmail, setUserEmail] = useState<string>('');
   const [isVerified, setIsVerified] = useState(false);
 
@@ -116,18 +117,24 @@ export default function HomeScreen({ onNavigateToBoard, onNavigateToProfile, onN
           </View>
 
           {!isVerified && (
-            <View
+            <TouchableOpacity
+              onPress={onNavigateToVerification}
               style={{
                 backgroundColor: '#fef3c7',
                 padding: 12,
                 borderRadius: 8,
                 marginBottom: 12,
+                borderWidth: 1,
+                borderColor: '#fbbf24',
               }}
             >
-              <Text style={{ fontSize: 13, color: '#92400e', textAlign: 'center' }}>
+              <Text style={{ fontSize: 13, color: '#92400e', textAlign: 'center', fontWeight: '500' }}>
                 ⚠️ 거주 인증을 완료하면 커뮤니티를 이용하실 수 있습니다
               </Text>
-            </View>
+              <Text style={{ fontSize: 12, color: '#b45309', textAlign: 'center', marginTop: 4 }}>
+                탭하여 인증하기 →
+              </Text>
+            </TouchableOpacity>
           )}
 
           <View style={{ flexDirection: 'row', gap: 8 }}>
