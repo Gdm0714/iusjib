@@ -5,9 +5,10 @@ import HomeScreen from './HomeScreen';
 import BoardScreen from './BoardScreen';
 import PostDetailScreen from './PostDetailScreen';
 import ProfileScreen from './ProfileScreen';
+import CreatePostScreen from './CreatePostScreen';
 import { BoardType } from '../types';
 
-type Screen = 'home' | 'board' | 'post' | 'profile';
+type Screen = 'home' | 'board' | 'post' | 'profile' | 'createPost';
 
 export default function MainNavigator() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('home');
@@ -31,7 +32,17 @@ export default function MainNavigator() {
       setCurrentScreen('home');
     } else if (currentScreen === 'profile') {
       setCurrentScreen('home');
+    } else if (currentScreen === 'createPost') {
+      setCurrentScreen('home');
     }
+  };
+
+  const navigateToCreatePost = () => {
+    setCurrentScreen('createPost');
+  };
+
+  const handlePostCreated = () => {
+    setCurrentScreen('home');
   };
 
   const getBoardTitle = (boardType: BoardType): string => {
@@ -69,6 +80,7 @@ export default function MainNavigator() {
               {currentScreen === 'board' && getBoardTitle(selectedBoard)}
               {currentScreen === 'post' && '게시글'}
               {currentScreen === 'profile' && '프로필'}
+              {currentScreen === 'createPost' && '글쓰기'}
             </Text>
           </View>
         </View>
@@ -80,6 +92,7 @@ export default function MainNavigator() {
           <HomeScreen
             onNavigateToBoard={navigateToBoard}
             onNavigateToProfile={() => setCurrentScreen('profile')}
+            onNavigateToCreatePost={navigateToCreatePost}
           />
         )}
         {currentScreen === 'board' && (
@@ -89,10 +102,13 @@ export default function MainNavigator() {
           <PostDetailScreen postId={selectedPostId} />
         )}
         {currentScreen === 'profile' && <ProfileScreen />}
+        {currentScreen === 'createPost' && (
+          <CreatePostScreen onCancel={navigateBack} onSuccess={handlePostCreated} />
+        )}
       </View>
 
       {/* Bottom Navigation */}
-      {currentScreen !== 'profile' && currentScreen !== 'post' && (
+      {currentScreen !== 'profile' && currentScreen !== 'post' && currentScreen !== 'createPost' && (
         <View
           style={{
             backgroundColor: '#fff',

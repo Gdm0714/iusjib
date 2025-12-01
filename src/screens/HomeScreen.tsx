@@ -6,9 +6,10 @@ import { BoardType } from '../types';
 interface HomeScreenProps {
   onNavigateToBoard: (boardType: BoardType) => void;
   onNavigateToProfile: () => void;
+  onNavigateToCreatePost: () => void;
 }
 
-export default function HomeScreen({ onNavigateToBoard, onNavigateToProfile }: HomeScreenProps) {
+export default function HomeScreen({ onNavigateToBoard, onNavigateToProfile, onNavigateToCreatePost }: HomeScreenProps) {
   const [userEmail, setUserEmail] = useState<string>('');
   const [isVerified, setIsVerified] = useState(false);
 
@@ -131,6 +132,7 @@ export default function HomeScreen({ onNavigateToBoard, onNavigateToProfile }: H
 
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <TouchableOpacity
+              onPress={onNavigateToCreatePost}
               style={{
                 flex: 1,
                 backgroundColor: '#fff5ed',

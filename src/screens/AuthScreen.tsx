@@ -25,22 +25,32 @@ export default function AuthScreen() {
 
     setLoading(true);
     try {
+      console.log('🔐 인증 시도:', isSignUp ? '회원가입' : '로그인');
+      console.log('📧 이메일:', email);
+
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: undefined, // 이메일 리다이렉트 비활성화
+          },
         });
+        console.log('📝 회원가입 응답:', { data, error });
         if (error) throw error;
-        Alert.alert('성공', '회원가입이 완료되었습니다. 이메일을 확인해주세요.');
+        Alert.alert('성공', '회원가입이 완료되었습니다!');
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
+        console.log('🔓 로그인 응답:', { data, error });
         if (error) throw error;
       }
     } catch (error: any) {
-      Alert.alert('오류', error.message);
+      console.error('❌ 인증 오류:', error);
+      console.error('❌ 오류 상세:', JSON.stringify(error, null, 2));
+      Alert.alert('오류', error.message || '알 수 없는 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
