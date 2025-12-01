@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import { supabase } from '../lib/supabase';
 
 interface VerificationScreenProps {
@@ -123,32 +124,79 @@ export default function VerificationScreen({ onCancel, onSuccess }: Verification
       } = await supabase.auth.getUser();
       if (!user) throw new Error('로그인이 필요합니다.');
 
-      // 임시: 이미지 업로드 없이 인증 요청 (나중에 Storage 연동)
-      const documentUrl = documentUri || 'placeholder';
+      // 이미지 업로드 (Storage 연동)
+      let documentUrl = 'placeholder';
 
-      // 프로필 업데이트
+      if (documentUri) {
+        try {
+          // 파일 정보 추출
+          const fileExt = documentUri.split('.').pop() || 'jpg';
+          const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+          // React Native에서 파일을 base64로 읽기
+          const base64 = await FileSystem.readAsStringAsync(documentUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+
+          // base64를 Blob으로 변환
+          const byteCharacters = atob(base64);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: `image/${fileExt}` });
+
+          // Supabase Storage에 업로드
+          const { error: uploadError } = await supabase.storage
+            .from('verification-documents')
+            .upload(fileName, blob, {
+              contentType: `image/${fileExt}`,
+              upsert: false,
+            });
+
+          if (uploadError) throw uploadError;
+
+          // Public URL 생성
+          const {
+            data: { publicUrl },
+          } = supabase.storage.from('verification-documents').getPublicUrl(fileName);
+
+          documentUrl = publicUrl;
+        } catch (uploadError: any) {
+          console.error('이미지 업로드 오류:', uploadError);
+          // 업로드 실패 시에도 진행 (placeholder URL 사용)
+        }
+      }
+
+      // 프로필 업데이트 (verified는 false로 유지, 관리자 승인 대기)
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
           building_id: selectedBuilding.id,
           floor: floor.trim(),
-          verified: true, // 개발 중에는 자동 인증
+          verified: false, // 관리자 승인 대기
         })
         .eq('id', user.id);
 
       if (profileError) throw profileError;
 
-      // 인증 요청 기록 (선택사항)
-      await supabase.from('verification_requests').insert({
+      // 인증 요청 생성 (pending 상태)
+      const { error: requestError } = await supabase.from('verification_requests').insert({
         user_id: user.id,
         building_id: selectedBuilding.id,
         floor: floor.trim(),
         document_url: documentUrl,
-        status: 'approved', // 개발 중에는 자동 승인
+        status: 'pending', // 관리자 승인 대기
       });
 
-      Alert.alert('성공', '거주 인증이 완료되었습니다!');
-      onSuccess();
+      if (requestError) throw requestError;
+
+      Alert.alert(
+        '인증 요청 완료',
+        '거주 인증 요청이 제출되었습니다.\n관리자 승인 후 커뮤니티를 이용하실 수 있습니다.',
+        [{ text: '확인', onPress: onSuccess }]
+      );
     } catch (error: any) {
       console.error('인증 요청 오류:', error.message);
       Alert.alert('오류', error.message || '인증 요청에 실패했습니다.');

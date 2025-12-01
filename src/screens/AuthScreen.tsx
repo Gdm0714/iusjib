@@ -11,6 +11,9 @@ import {
 } from 'react-native';
 import { supabase } from '../lib/supabase';
 
+// 개발 모드 플래그 (환경 변수에서 읽기)
+const DEV_MODE = process.env.EXPO_PUBLIC_DEV_MODE === 'true';
+
 export default function AuthScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,12 +36,27 @@ export default function AuthScreen() {
           email,
           password,
           options: {
-            emailRedirectTo: undefined, // 이메일 리다이렉트 비활성화
+            emailRedirectTo: 'iusjib://', // 딥링크 리다이렉트
           },
         });
         console.log('📝 회원가입 응답:', { data, error });
         if (error) throw error;
-        Alert.alert('성공', '회원가입이 완료되었습니다!');
+
+        // 개발 모드 vs 프로덕션 모드 메시지
+        if (DEV_MODE) {
+          Alert.alert(
+            '개발 모드',
+            '⚠️ 개발 모드입니다.\n\nSupabase에서 이메일 인증을 활성화하려면:\n1. Authentication > Providers > Email\n2. "Confirm email" 옵션 켜기\n\n지금은 회원가입 후 바로 로그인할 수 있습니다.',
+            [{ text: '확인' }]
+          );
+        } else {
+          // 프로덕션: 이메일 인증 필요
+          Alert.alert(
+            '이메일 인증 필요',
+            '가입하신 이메일로 인증 링크가 전송되었습니다.\n이메일을 확인하여 인증을 완료해주세요.',
+            [{ text: '확인' }]
+          );
+        }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
@@ -162,10 +180,31 @@ export default function AuthScreen() {
           </Text>
         </TouchableOpacity>
 
+        {/* 개발 모드 경고 */}
+        {DEV_MODE && (
+          <View
+            style={{
+              marginTop: 32,
+              padding: 16,
+              backgroundColor: '#fee2e2',
+              borderRadius: 8,
+              borderWidth: 2,
+              borderColor: '#dc2626',
+            }}
+          >
+            <Text style={{ fontSize: 14, color: '#991b1b', textAlign: 'center', fontWeight: '600', marginBottom: 4 }}>
+              ⚠️ 개발 모드
+            </Text>
+            <Text style={{ fontSize: 12, color: '#b91c1c', textAlign: 'center' }}>
+              이메일 인증이 비활성화되어 있습니다.{'\n'}프로덕션 배포 전에 .env에서 DEV_MODE를 false로 변경하세요.
+            </Text>
+          </View>
+        )}
+
         {/* 안내 메시지 */}
         <View
           style={{
-            marginTop: 32,
+            marginTop: 16,
             padding: 16,
             backgroundColor: '#fef3c7',
             borderRadius: 8,

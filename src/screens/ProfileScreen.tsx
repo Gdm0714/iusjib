@@ -2,13 +2,18 @@ import { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { supabase } from '../lib/supabase';
 
-export default function ProfileScreen() {
+interface ProfileScreenProps {
+  onNavigateToAdmin?: () => void;
+}
+
+export default function ProfileScreen({ onNavigateToAdmin }: ProfileScreenProps) {
   const [userEmail, setUserEmail] = useState('');
   const [nickname, setNickname] = useState('');
   const [building, setBuilding] = useState('');
   const [floor, setFloor] = useState('');
   const [verified, setVerified] = useState(false);
   const [joinedDate, setJoinedDate] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -40,6 +45,7 @@ export default function ProfileScreen() {
         setVerified(profile.verified);
         setJoinedDate(new Date(profile.created_at).toLocaleDateString('ko-KR'));
         setBuilding(profile.building?.name || '미설정');
+        setIsAdmin(profile.role === 'admin' || profile.role === 'super_admin');
       }
     } catch (error: any) {
       console.error('프로필 로드 오류:', error.message);
@@ -202,6 +208,45 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
+
+        {/* 관리자 메뉴 (관리자만 표시) */}
+        {isAdmin && (
+          <View
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: 12,
+              marginBottom: 16,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.05,
+              shadowRadius: 4,
+              elevation: 2,
+              borderWidth: 2,
+              borderColor: '#f97316',
+            }}
+          >
+            <TouchableOpacity
+              onPress={onNavigateToAdmin}
+              style={{
+                padding: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={{ fontSize: 20, marginRight: 12 }}>🛡️</Text>
+                <View>
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#f97316', marginBottom: 2 }}>
+                    관리자 메뉴
+                  </Text>
+                  <Text style={{ fontSize: 12, color: '#9ca3af' }}>인증 요청 관리</Text>
+                </View>
+              </View>
+              <Text style={{ fontSize: 18, color: '#f97316' }}>→</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* 설정 메뉴 */}
         <View

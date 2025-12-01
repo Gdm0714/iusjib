@@ -7,9 +7,10 @@ import PostDetailScreen from './PostDetailScreen';
 import ProfileScreen from './ProfileScreen';
 import CreatePostScreen from './CreatePostScreen';
 import VerificationScreen from './VerificationScreen';
+import AdminScreen from './AdminScreen';
 import { BoardType } from '../types';
 
-type Screen = 'home' | 'board' | 'post' | 'profile' | 'createPost' | 'verification';
+type Screen = 'home' | 'board' | 'post' | 'profile' | 'createPost' | 'verification' | 'admin';
 
 export default function MainNavigator() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('home');
@@ -35,6 +36,8 @@ export default function MainNavigator() {
       setCurrentScreen('home');
     } else if (currentScreen === 'createPost') {
       setCurrentScreen('home');
+    } else if (currentScreen === 'admin') {
+      setCurrentScreen('profile');
     }
   };
 
@@ -91,6 +94,7 @@ export default function MainNavigator() {
               {currentScreen === 'profile' && '프로필'}
               {currentScreen === 'createPost' && '글쓰기'}
               {currentScreen === 'verification' && '거주 인증'}
+              {currentScreen === 'admin' && '관리자'}
             </Text>
           </View>
         </View>
@@ -112,7 +116,10 @@ export default function MainNavigator() {
         {currentScreen === 'post' && selectedPostId && (
           <PostDetailScreen postId={selectedPostId} />
         )}
-        {currentScreen === 'profile' && <ProfileScreen />}
+        {currentScreen === 'profile' && (
+          <ProfileScreen onNavigateToAdmin={() => setCurrentScreen('admin')} />
+        )}
+        {currentScreen === 'admin' && <AdminScreen />}
         {currentScreen === 'createPost' && (
           <CreatePostScreen onCancel={navigateBack} onSuccess={handlePostCreated} />
         )}
@@ -122,7 +129,7 @@ export default function MainNavigator() {
       </View>
 
       {/* Bottom Navigation */}
-      {currentScreen !== 'profile' && currentScreen !== 'post' && currentScreen !== 'createPost' && currentScreen !== 'verification' && (
+      {currentScreen !== 'profile' && currentScreen !== 'post' && currentScreen !== 'createPost' && currentScreen !== 'verification' && currentScreen !== 'admin' && (
         <View
           style={{
             backgroundColor: '#fff',

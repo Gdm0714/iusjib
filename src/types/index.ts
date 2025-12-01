@@ -7,6 +7,7 @@ export interface User {
   building_id: string;
   floor: string;
   verified: boolean;
+  role: 'user' | 'admin' | 'super_admin';
   created_at: string;
 }
 
@@ -61,4 +62,13 @@ export interface VerificationRequest {
   document_url: string;
   status: 'pending' | 'approved' | 'rejected';
   created_at: string;
+  reviewed_at?: string;
+  user?: {
+    email: string;
+    nickname: string;
+  };
+  building?: {
+    name: string;
+    address: string;
+  };
 }

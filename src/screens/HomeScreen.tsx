@@ -13,6 +13,7 @@ interface HomeScreenProps {
 export default function HomeScreen({ onNavigateToBoard, onNavigateToProfile, onNavigateToCreatePost, onNavigateToVerification }: HomeScreenProps) {
   const [userEmail, setUserEmail] = useState<string>('');
   const [isVerified, setIsVerified] = useState(false);
+  const [hasPendingRequest, setHasPendingRequest] = useState(false);
 
   useEffect(() => {
     loadUserProfile();
@@ -35,6 +36,18 @@ export default function HomeScreen({ onNavigateToBoard, onNavigateToProfile, onN
 
         if (profile) {
           setIsVerified(profile.verified);
+
+          // 승인 대기 중인 요청이 있는지 확인
+          if (!profile.verified && profile.building_id) {
+            const { data: requests } = await supabase
+              .from('verification_requests')
+              .select('status')
+              .eq('user_id', user.id)
+              .eq('status', 'pending')
+              .limit(1);
+
+            setHasPendingRequest(requests && requests.length > 0);
+          }
         }
       }
     } catch (error: any) {
@@ -116,7 +129,7 @@ export default function HomeScreen({ onNavigateToBoard, onNavigateToProfile, onN
             </TouchableOpacity>
           </View>
 
-          {!isVerified && (
+          {!isVerified && !hasPendingRequest && (
             <TouchableOpacity
               onPress={onNavigateToVerification}
               style={{
@@ -135,6 +148,26 @@ export default function HomeScreen({ onNavigateToBoard, onNavigateToProfile, onN
                 탭하여 인증하기 →
               </Text>
             </TouchableOpacity>
+          )}
+
+          {!isVerified && hasPendingRequest && (
+            <View
+              style={{
+                backgroundColor: '#eff6ff',
+                padding: 12,
+                borderRadius: 8,
+                marginBottom: 12,
+                borderWidth: 1,
+                borderColor: '#3b82f6',
+              }}
+            >
+              <Text style={{ fontSize: 13, color: '#1e40af', textAlign: 'center', fontWeight: '500' }}>
+                ⏳ 관리자가 거주 인증을 검토 중입니다
+              </Text>
+              <Text style={{ fontSize: 12, color: '#3b82f6', textAlign: 'center', marginTop: 4 }}>
+                승인되면 커뮤니티를 이용하실 수 있습니다
+              </Text>
+            </View>
           )}
 
           <View style={{ flexDirection: 'row', gap: 8 }}>
